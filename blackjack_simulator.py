@@ -189,7 +189,8 @@ class BettingSystem:
         """Process a loss according to betting strategy"""
         self.score = max(-3, self.score - 1)
         
-        if self.score == -3:
+        # Control level progression
+        if self.score == -2:
             if self.level == 3:
                 # Return to level 1
                 self.level = 1
@@ -607,7 +608,7 @@ def main():
                         help='Game style: A(merican), E(uropean), M(acau)')
     parser.add_argument('-a', '--shuffle', choices=['y', 'n'], default='y',
                         help='Auto shuffle: y(es) or n(o)')
-    parser.add_argument('-g', '--games', type=int, choices=range(1, 100001), default=10000,
+    parser.add_argument('-g', '--games', type=int, choices=range(1, 10000001), default=10000,
                         help='Number of games to play (1-100000)')
     parser.add_argument('-m', '--splits', type=int, choices=range(1, 5), default=2,
                         help='Maximum number of splits allowed (1-4)')
