@@ -190,7 +190,7 @@ class BettingSystem:
         self.score = max(-3, self.score - 1)
         
         # Control level progression
-        if self.score == -2:
+        if self.score == -3:
             if self.level == 3:
                 # Return to level 1
                 self.level = 1
@@ -336,14 +336,15 @@ class BlackjackGame:
         # Deal cards based on style
         if self.style == GameStyle.AMERICAN:
             # Deal 2 cards to player, 2 to dealer
-            for _ in range(2):
-                player_hands[0].add_card(self.shoe.deal_card())
-                dealer_hand.add_card(self.shoe.deal_card())
+            player_hands[0].add_card(self.shoe.deal_card())
+            dealer_hand.add_card(self.shoe.deal_card())
+            player_hands[0].add_card(self.shoe.deal_card())
+            dealer_hand.add_card(self.shoe.deal_card())
         else:  # European or Macau
             # Deal 2 cards to player, 1 to dealer
-            for _ in range(2):
-                player_hands[0].add_card(self.shoe.deal_card())
+            player_hands[0].add_card(self.shoe.deal_card())
             dealer_hand.add_card(self.shoe.deal_card())
+            player_hands[0].add_card(self.shoe.deal_card())
         
         # Check for player blackjack
         player_has_blackjack = player_hands[0].is_blackjack()
