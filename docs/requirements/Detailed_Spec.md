@@ -46,6 +46,11 @@ Starting: Level 1, Score 0, Bet 1 unit
 - Won amount (profit only, excluding original bet)
 - Lost amount
 - Total bet amount
+- Final Equity
+- Max Equity
+- Min Equity
+- Max Drawdown
+- Max Strategy Level
 - Won games count
 - Lost games count
 - Push games count

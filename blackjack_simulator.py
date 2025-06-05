@@ -149,6 +149,7 @@ class GameStats:
     total_games: int = 0
     max_equity: float = 0.0  # Highest equity reached
     max_drawdown: float = 0.0  # Largest drop from peak
+    min_equity: float = 0.0  # Lowest equity reached
     
     @property
     def expected_return(self) -> float:
@@ -159,14 +160,17 @@ class GameStats:
         return self.lost_amount if self.total_bet == 0 else self.lost_amount / self.total_bet
     
     @property
-    def expected_value(self) -> float:
-        return (self.won_amount - self.lost_amount) if self.total_bet == 0 else (self.won_amount - self.lost_amount) / self.total_bet
+    def expected_value(self) -> float:        return (self.won_amount - self.lost_amount) if self.total_bet == 0 else (self.won_amount - self.lost_amount) / self.total_bet
     
     def update_equity_tracking(self, current_equity: float):
-        """Update max equity and max drawdown tracking"""
+        """Update max equity, min equity, and max drawdown tracking"""
         # Update max equity if current equity is higher
         if current_equity > self.max_equity:
             self.max_equity = current_equity
+        
+        # Update min equity if current equity is lower
+        if current_equity < self.min_equity:
+            self.min_equity = current_equity
         
         # Calculate current drawdown from peak
         current_drawdown = self.max_equity - current_equity
@@ -578,8 +582,7 @@ class BlackjackGame:
             if not can_continue:
                 # Need to shuffle
                 self.shoe.shuffle()
-        
-        # Display results
+          # Display results
         self.display_results()
     
     def display_results(self):
@@ -596,6 +599,7 @@ class BlackjackGame:
         
         print(f"Final Equity: ${self.equity:.2f}")
         print(f"Max Equity: ${self.stats.max_equity:.2f}")
+        print(f"Min Equity: ${self.stats.min_equity:.2f}")
         print(f"Max Drawdown: ${self.stats.max_drawdown:.2f}")
         print(f"Total Amount Bet: ${self.stats.total_bet:.2f}")
         print(f"Total Amount Won (Profit): ${self.stats.won_amount:.2f}")

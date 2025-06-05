@@ -20,4 +20,4 @@
     - if at level 1 and won at score 0 stays at level 1 score 0 (does not go to score +1)
     - Splitting: Can split any pair, can split up to specified limit, can double down on split hands
     - European style clarification: lose ALL bets (original + double/split money) when dealer has blackjack
-3. Track status won amount (actually won: profit only, not include original bet), lose amount, total bet, won games, lose games, push games, total games, Expected Return, Expected Loss, Expected Value. Display results in console. 
+3. Track status won amount (actually won: profit only, not include original bet), lose amount, total bet, Final Equity, Max Equity, Min Equity, Max Drawdown, Max Strategy level  won games, lose games, push games, total games, Expected Return, Expected Loss, Expected Value. Display results in console. 
