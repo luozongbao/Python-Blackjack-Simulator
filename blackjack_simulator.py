@@ -147,6 +147,8 @@ class GameStats:
     lost_games: int = 0
     push_games: int = 0
     total_games: int = 0
+    max_equity: float = 0.0  # Highest equity reached
+    max_drawdown: float = 0.0  # Largest drop from peak
     
     @property
     def expected_return(self) -> float:
@@ -159,6 +161,19 @@ class GameStats:
     @property
     def expected_value(self) -> float:
         return (self.won_amount - self.lost_amount) if self.total_bet == 0 else (self.won_amount - self.lost_amount) / self.total_bet
+    
+    def update_equity_tracking(self, current_equity: float):
+        """Update max equity and max drawdown tracking"""
+        # Update max equity if current equity is higher
+        if current_equity > self.max_equity:
+            self.max_equity = current_equity
+        
+        # Calculate current drawdown from peak
+        current_drawdown = self.max_equity - current_equity
+        
+        # Update max drawdown if current drawdown is larger
+        if current_drawdown > self.max_drawdown:
+            self.max_drawdown = current_drawdown
 
 
 class BettingSystem:
@@ -356,13 +371,13 @@ class BlackjackGame:
                 # Peek at hole card
                 if dealer_hand.is_blackjack():
                     dealer_has_blackjack = True
-        
-        # Handle blackjacks
+          # Handle blackjacks
         if player_has_blackjack and dealer_has_blackjack:
             # Push
             self.equity += bet_amount  # Return bet
             self.stats.push_games += 1
             self.stats.total_games += 1
+            self.stats.update_equity_tracking(self.equity)
             return True
         elif player_has_blackjack:
             # Player wins 3:2
@@ -372,6 +387,7 @@ class BlackjackGame:
             self.stats.won_games += 1
             self.stats.total_games += 1
             self.betting_system.process_win()
+            self.stats.update_equity_tracking(self.equity)
             return True
         elif dealer_has_blackjack:
             # Player loses
@@ -379,6 +395,7 @@ class BlackjackGame:
             self.stats.lost_games += 1
             self.stats.total_games += 1
             self.betting_system.process_loss()
+            self.stats.update_equity_tracking(self.equity)
             return True
         
         # Play player hands
@@ -458,8 +475,7 @@ class BlackjackGame:
                     else:  # Macau
                         # Lose only original bet (not doubles/splits)
                         original_bet = self.betting_system.get_bet_amount()
-                        total_lost += original_bet
-                        # Return the extra bets
+                        total_lost += original_bet                        # Return the extra bets
                         extra_bet = hand.bet - original_bet
                         if extra_bet > 0:
                             self.equity += extra_bet
@@ -469,6 +485,7 @@ class BlackjackGame:
                 self.stats.lost_games += 1
                 self.stats.total_games += 1
                 self.betting_system.process_loss()
+                self.stats.update_equity_tracking(self.equity)
                 return True
         
         # Play dealer hand (if no dealer blackjack)
@@ -532,8 +549,7 @@ class BlackjackGame:
         # Update statistics
         self.stats.won_amount += total_winnings
         self.stats.lost_amount += total_losses
-        
-        # Determine overall game result for betting system
+          # Determine overall game result for betting system
         if game_won and not game_lost:
             self.stats.won_games += 1
             self.betting_system.process_win()
@@ -545,6 +561,10 @@ class BlackjackGame:
             # No betting system change for push
         
         self.stats.total_games += 1
+        
+        # Update equity tracking
+        self.stats.update_equity_tracking(self.equity)
+        
         return True
     
     def run_simulation(self, num_games: int):
@@ -575,6 +595,8 @@ class BlackjackGame:
         print()
         
         print(f"Final Equity: ${self.equity:.2f}")
+        print(f"Max Equity: ${self.stats.max_equity:.2f}")
+        print(f"Max Drawdown: ${self.stats.max_drawdown:.2f}")
         print(f"Total Amount Bet: ${self.stats.total_bet:.2f}")
         print(f"Total Amount Won (Profit): ${self.stats.won_amount:.2f}")
         print(f"Total Amount Lost: ${self.stats.lost_amount:.2f}")
