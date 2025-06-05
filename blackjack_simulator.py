@@ -150,17 +150,18 @@ class GameStats:
     max_equity: float = 0.0  # Highest equity reached
     max_drawdown: float = 0.0  # Largest drop from peak
     min_equity: float = 0.0  # Lowest equity reached
+    max_strategy_level: int = 1  # Highest betting level reached
     
     @property
     def expected_return(self) -> float:
         return self.won_amount if self.total_bet == 0 else self.won_amount / self.total_bet
     
     @property
-    def expected_loss(self) -> float:
-        return self.lost_amount if self.total_bet == 0 else self.lost_amount / self.total_bet
+    def expected_loss(self) -> float:        return self.lost_amount if self.total_bet == 0 else self.lost_amount / self.total_bet
     
     @property
-    def expected_value(self) -> float:        return (self.won_amount - self.lost_amount) if self.total_bet == 0 else (self.won_amount - self.lost_amount) / self.total_bet
+    def expected_value(self) -> float:
+        return (self.won_amount - self.lost_amount) if self.total_bet == 0 else (self.won_amount - self.lost_amount) / self.total_bet
     
     def update_equity_tracking(self, current_equity: float):
         """Update max equity, min equity, and max drawdown tracking"""
@@ -174,22 +175,28 @@ class GameStats:
         
         # Calculate current drawdown from peak
         current_drawdown = self.max_equity - current_equity
-        
-        # Update max drawdown if current drawdown is larger
+          # Update max drawdown if current drawdown is larger
         if current_drawdown > self.max_drawdown:
             self.max_drawdown = current_drawdown
+    
+    def update_max_strategy_level(self, current_level: int):
+        """Update max strategy level if current level is higher"""
+        if current_level > self.max_strategy_level:
+            self.max_strategy_level = current_level
 
 
 class BettingSystem:
     """Manages the betting progression system"""
-    def __init__(self):
+    def __init__(self, bet_multiplier: int = 3, max_level: int = 3):
         self.level = 1
         self.score = 0
         self.base_unit = 1
+        self.bet_multiplier = bet_multiplier
+        self.max_level = max_level
     
     def get_bet_amount(self) -> int:
         """Get current bet amount based on level"""
-        return 3 ** (self.level - 1) * self.base_unit
+        return self.bet_multiplier ** (self.level - 1) * self.base_unit
     
     def process_win(self):
         """Process a win according to betting strategy"""
@@ -210,7 +217,7 @@ class BettingSystem:
         
         # Control level progression
         if self.score == -3:
-            if self.level == 3:
+            if self.level == self.max_level:
                 # Return to level 1
                 self.level = 1
                 self.score = 0
@@ -324,12 +331,12 @@ class BlackjackGame:
     
     def __init__(self, num_decks: int = 6, dealer_rule: DealerRule = DealerRule.STAND_17,
                  style: GameStyle = GameStyle.AMERICAN, auto_shuffle: bool = True,
-                 max_splits: int = 2):
+                 max_splits: int = 2, bet_multiplier: int = 3, max_level: int = 3):
         self.shoe = Shoe(num_decks, auto_shuffle)
         self.dealer_rule = dealer_rule
         self.style = style
         self.max_splits = max_splits
-        self.betting_system = BettingSystem()
+        self.betting_system = BettingSystem(bet_multiplier, max_level)
         self.stats = GameStats()
         self.equity = 0.0
     
@@ -565,9 +572,11 @@ class BlackjackGame:
             # No betting system change for push
         
         self.stats.total_games += 1
-        
-        # Update equity tracking
+          # Update equity tracking
         self.stats.update_equity_tracking(self.equity)
+        
+        # Update max strategy level tracking
+        self.stats.update_max_strategy_level(self.betting_system.level)
         
         return True
     
@@ -612,6 +621,7 @@ class BlackjackGame:
         print()
         
         print(f"Final Betting System Status: {self.betting_system.get_status()}")
+        print(f"Max Strategy Level Reached: {self.stats.max_strategy_level}")
         print()
         
         win_rate = self.stats.won_games / self.stats.total_games * 100 if self.stats.total_games > 0 else 0
@@ -635,14 +645,17 @@ def main():
                         help='Game style: A(merican), E(uropean), M(acau)')
     parser.add_argument('-a', '--shuffle', choices=['y', 'n'], default='y',
                         help='Auto shuffle: y(es) or n(o)')
-    parser.add_argument('-g', '--games', type=int, choices=range(1, 10000001), default=10000,
+    parser.add_argument('-g', '--games', type=int, choices=range(1, 100001), default=10000,
                         help='Number of games to play (1-100000)')
     parser.add_argument('-m', '--splits', type=int, choices=range(1, 5), default=2,
                         help='Maximum number of splits allowed (1-4)')
+    parser.add_argument('-b', '--bet-multiplier', type=int, default=3,
+                        help='Bet multiplier for progression system (default: 3)')
+    parser.add_argument('-l', '--max-level', type=int, default=3,
+                        help='Maximum strategy level (default: 3)')
     
     args = parser.parse_args()
-    
-    # Convert arguments
+      # Convert arguments
     dealer_rule = DealerRule.STAND_17 if args.dealer == 's17' else DealerRule.HIT_SOFT_17
     style = GameStyle(args.style)
     auto_shuffle = args.shuffle == 'y'
@@ -650,6 +663,7 @@ def main():
     print("Starting Blackjack Simulation...")
     print(f"Configuration: {args.decks} decks, {args.dealer}, {style.value} style, "
           f"auto-shuffle: {auto_shuffle}, {args.games} games, max splits: {args.splits}")
+    print(f"Betting System: multiplier={args.bet_multiplier}, max level={args.max_level}")
     print()
     
     # Create and run simulation
@@ -658,7 +672,9 @@ def main():
         dealer_rule=dealer_rule,
         style=style,
         auto_shuffle=auto_shuffle,
-        max_splits=args.splits
+        max_splits=args.splits,
+        bet_multiplier=args.bet_multiplier,
+        max_level=args.max_level
     )
     
     game.run_simulation(args.games)
