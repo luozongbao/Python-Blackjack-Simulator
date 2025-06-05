@@ -213,10 +213,10 @@ class BettingSystem:
     
     def process_loss(self):
         """Process a loss according to betting strategy"""
-        self.score = max(-3, self.score - 1)
+        self.score = max(-self.bet_multiplier, self.score - 1)
         
         # Control level progression
-        if self.score == -3:
+        if self.score == -self.bet_multiplier:
             if self.level == self.max_level:
                 # Return to level 1
                 self.level = 1
