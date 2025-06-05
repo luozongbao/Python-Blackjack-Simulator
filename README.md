@@ -13,10 +13,11 @@ A comprehensive blackjack simulation tool with perfect basic strategy, advanced 
 - **Advanced splitting**: Up to 4 splits with doubling after split
 
 ### Betting System
-- **Progressive betting strategy** with 3-level system
+- **Configurable progressive betting strategy** with customizable level system
 - **Dynamic score tracking** (-3 to 0 range)
 - **Automatic level management** based on win/loss patterns
-- **Bet amounts**: 1, 3, or 9 units based on current level
+- **Customizable bet multiplier and max levels** via command line options
+- **Flexible bet amounts**: Configurable progression (default: 1, 3, 9 units)
 
 ### Performance Tracking ⭐ **NEW**
 - **Max Equity Tracking**: Monitors the highest equity point reached during simulation
@@ -40,6 +41,8 @@ python blackjack_simulator.py [options]
 | `-a, --shuffle` | `y`, `n` | `y` | Auto-shuffle every game or traditional 80% rule |
 | `-g, --games` | `1-100000` | `10000` | Number of games to simulate |
 | `-m, --splits` | `1-4` | `2` | Maximum number of splits allowed |
+| `-b, --bet-multiplier` | `2+` | `3` | Bet multiplier for progression system |
+| `-l, --max-level` | `1+` | `3` | Maximum strategy level allowed |
 
 ### Examples
 
@@ -58,6 +61,15 @@ python blackjack_simulator.py -n 1 -a n -m 4
 
 # Large simulation for statistical analysis
 python blackjack_simulator.py -g 50000
+
+# Conservative betting with 2x multiplier and max 2 levels
+python blackjack_simulator.py -b 2 -l 2
+
+# Aggressive betting with 5x multiplier
+python blackjack_simulator.py -b 5 -l 3
+
+# Flat betting (no progression)
+python blackjack_simulator.py -l 1
 ```
 
 ## Game Styles
@@ -77,19 +89,46 @@ python blackjack_simulator.py -g 50000
 
 ## Betting Strategy
 
-The simulator uses a sophisticated 3-level progressive betting system:
+The simulator uses a sophisticated configurable progressive betting system:
 
 ### Level Management
+- **Configurable levels**: Set maximum level with `-l` option (default: 3)
+- **Custom multiplier**: Set bet progression with `-b` option (default: 3)
 - **Level 1**: 1 unit bet
-- **Level 2**: 3 unit bet  
-- **Level 3**: 9 unit bet
+- **Level 2**: multiplier^1 units (default: 3 units)
+- **Level 3**: multiplier^2 units (default: 9 units)
+- **Example with `-b 5`**: 1 → 5 → 25 units
+- **Example with `-l 1`**: Flat betting at 1 unit only
 
 ### Score System
 - **Win**: Score +1 (maximum 0)
 - **Loss**: Score -1 (minimum -3)
 - **Score -3**: Level up and reset score to 0
 - **Level > 1 + Win at score 0**: Level down and reset score
-- **Level 3 + Score -3**: Return to Level 1
+- **Max level + Score -3**: Return to Level 1
+
+### Betting System Examples
+
+#### Conservative Setup (`-b 2 -l 2`)
+- **Level 1**: 1 unit
+- **Level 2**: 2 units
+- **Max drawdown**: Limited due to lower progression
+
+#### Default Setup (`-b 3 -l 3`)
+- **Level 1**: 1 unit
+- **Level 2**: 3 units  
+- **Level 3**: 9 units
+- **Balanced**: Moderate risk/reward
+
+#### Aggressive Setup (`-b 5 -l 3`)
+- **Level 1**: 1 unit
+- **Level 2**: 5 units
+- **Level 3**: 25 units
+- **High volatility**: Larger swings possible
+
+#### Flat Betting (`-l 1`)
+- **All bets**: 1 unit only
+- **No progression**: Minimal variance
 
 ## Performance Metrics
 
@@ -99,6 +138,7 @@ The simulator uses a sophisticated 3-level progressive betting system:
 - **Total Bet**: Cumulative betting volume
 - **Win/Loss/Push Rates**: Game outcome percentages
 - **Expected Values**: Return, loss, and overall expected value
+- **Max Strategy Level**: Highest betting level reached during simulation
 
 ### Sample Output
 
@@ -112,6 +152,9 @@ Games Lost: 4567
 Games Pushed: 1112
 
 Final Equity: $-245.00
+Max Equity: $125.00
+Min Equity: $-370.00
+Max Drawdown: $495.00
 Total Amount Bet: $15,000.00
 Total Amount Won (Profit): $4,321.00
 Total Amount Lost: $4,566.00
@@ -121,6 +164,7 @@ Expected Loss: 0.3044
 Expected Value: -0.0163
 
 Final Betting System Status: Level: 2, Score: -1, Bet: 3
+Max Strategy Level Reached: 3
 Win Rate: 43.21%
 Push Rate: 11.12%
 Loss Rate: 45.67%
